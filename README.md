@@ -213,35 +213,25 @@ Generated Recommendation:
 # Project Structure
 
 ```text
-clawops-ai/
+UIT_SoloLeveling-ClawAThon/
 │
-├── app/
-│   ├── agents/
-│   ├── analyzers/
-│   ├── collectors/
-│   ├── memory/
-│   ├── reports/
-│   └── utils/
+├── .github/workflows/         # CI/CD tự động (nếu có)
+├── data/                      # Lưu trữ dữ liệu synthetic
+│   ├── historical_incidents/  # Các incident mẫu được lưu trong bộ nhớ quá khứ
+│   └── current_incident/      # Dữ liệu của ca sự cố đang diễn ra
 │
-├── datasets/
-│   ├── alerts/
-│   ├── logs/
-│   ├── metrics/
-│   ├── events/
-│   └── incidents/
+├── src/
+│   ├── __init__.py
+│   ├── schema.py              # Định nghĩa Pydantic schemas cho toàn bộ hệ thống
+│   ├── generator.py           # Script Python sinh 10 loại dữ liệu giả lập
+│   ├── graph.py               # Xây dựng luồng LangGraph (Nodes & Edges)
+│   ├── memory.py              # Khối tương tác với AgentBase Memory
+│   └── main.py                # Điểm chạy ứng dụng (CLI/API Endpoint)
 │
-├── prompts/
-│
-├── tests/
-│
-├── scripts/
-│   └── generate_incidents.py
-│
-├── Dockerfile
-│
-├── requirements.txt
-│
-└── README.md
+├── greennode-agentbase-skills/# Bộ skill AgentBase của BTC đã clone về
+├── Dockerfile                 # Đóng gói Agent lên AgentBase Runtime
+├── requirements.txt           # Danh sách thư viện Python phụ thuộc
+└── README.md                  # Mô tả
 ```
 
 # Competition Alignment
