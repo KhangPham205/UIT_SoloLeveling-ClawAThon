@@ -1,0 +1,15 @@
+fastapi
+chromadb
+ddgs
+duckduckgo-search
+langchain-core
+langchain-huggingface
+langchain-openai
+langgraph
+pandas
+pydantic
+python-dotenv
+requests
+sentence-transformers
+streamlit
+uvicorn[standard]

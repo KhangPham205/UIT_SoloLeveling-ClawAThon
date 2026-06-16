@@ -1,0 +1,8 @@
+{
+    "alert_id": "ALRT-001",
+    "timestamp": "2026-06-10T09:26:01.445599Z",
+    "severity": "CRITICAL",
+    "service": "backend-service",
+    "summary": "Database Connection Timeout",
+    "description": "HTTP 500 errors spiking due to DB unavailability"
+}
