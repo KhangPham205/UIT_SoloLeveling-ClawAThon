@@ -1,8 +1,8 @@
 {
     "alert_id": "ALRT-001",
-    "timestamp": "2026-06-10T09:26:01.445599Z",
+    "timestamp": "2026-06-16T17:52:00.425890Z",
     "severity": "CRITICAL",
-    "service": "backend-service",
-    "summary": "Database Connection Timeout",
-    "description": "HTTP 500 errors spiking due to DB unavailability"
+    "service": "data-worker",
+    "summary": "Container Terminated Unexpectedly",
+    "description": "Pod memory limits breached and workload was OOMKilled"
 }

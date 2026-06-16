@@ -1,16 +1,14 @@
 [
     {
-        "timestamp": "2026-06-10T09:26:01.445599Z",
-        "level": "ERROR",
-        "service": "backend-service",
-        "message": "vngcloud.postgresql.Driver - Connection stubborn: Timeout waiting for idle object in pool",
-        "trace_id": "req-999"
+        "timestamp": "2026-06-16T17:52:00.425890Z",
+        "level": "CRITICAL",
+        "service": "data-worker",
+        "message": "Kubernetes OOMKilled: container data-worker exceeded memory limit"
     },
     {
-        "timestamp": "2026-06-10T09:26:01.445599Z",
-        "level": "WARN",
-        "service": "backend-service",
-        "message": "HikariPool-1 - Connection is not available, request timed out after 30000ms.",
-        "trace_id": "req-999"
+        "timestamp": "2026-06-16T17:52:00.425890Z",
+        "level": "ERROR",
+        "service": "data-worker",
+        "message": "java.lang.OutOfMemoryError: Java heap space"
     }
 ]

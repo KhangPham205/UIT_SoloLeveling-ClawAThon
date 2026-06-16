@@ -1,38 +1,42 @@
-# Post-Mortem: Database Connection Timeout
+# Post-Mortem: Container Terminated Unexpectedly
 
-**Incident ID:** INC-20260615-161222
+**Incident ID:** INC-20260616-175547
 
 ## Root Cause Analysis
-{'primary_cause': 'Database Connection Pool Exhaustion (HikariCP)', 'confidence_score': 0.95, 'summary': 'The backend-service is experiencing HTTP 500 errors due to the inability to acquire available database connections within the configured timeout threshold of 30000ms. This is caused by the HikariCP connection pool reaching its maximum capacity faster than connections are being released.', 'contributing_factors': ["Insufficient 'maximum-pool-size' configuration relative to current traffic volume", 'Potential long-running transactions or queries holding connections open', 'Possible connection leaks in application code'], 'evidence_sources': {'logs': "Errors 'Timeout waiting for idle object in pool' and 'Connection is not available' confirm pool saturation.", 'metrics': 'CPU (15%) and Memory (40%) usage are low, ruling out host resource exhaustion. Latency matches 30s timeout exactly.', 'historical_incidents': ['INC-20260610-100902 (similarity=0.495): Confirmed same symptom and resolution (pool increase).', 'INC-2026-05B (similarity=0.360): Previously resolved by increasing max pool size to 50.']}, 'infrastructure_health': 'Database instance health and backend host resources are stable; the bottleneck is strictly at the connection pool layer.'}
+{'incident_id': 'ALRT-001', 'service': 'data-worker', 'severity': 'CRITICAL', 'summary': "The 'data-worker' service was terminated by Kubernetes due to an OOMKilled event caused by container memory limit exhaustion (101.2% utilization). This correlates directly with a Java Heap Space OutOfMemoryError.", 'primary_root_cause': 'Container memory limit configuration insufficient for JVM requirements, resulting in system-level OOMKilled termination.', 'technical_evidence': ["Kubernetes Event: Pod status recorded as 'OOMKilled'.", "Application Log: 'java.lang.OutOfMemoryError: Java heap space' observed at termination time.", 'Metrics Data: Memory usage peaked at 101.2% of limit; CPU usage low (15%) indicating non-compute bottleneck.', 'Historical Pattern: Two identical incidents (INC-20260616-143744, INC-20260616-143803) occurred today with 87%+ similarity.'], 'underlying_factors': ['JVM Heap Configuration: -Xmx likely set too close to container hard limit, leaving no headroom for native memory, code cache, or GC overhead.', 'Potential Memory Leak: Recurrence suggests steady memory accumulation (e.g., Hibernate session mismanagement) rather than a transient spike.', 'Resource Provisioning: Current container limits do not match actual workload demands.'], 'confidence_score': 0.95, 'historical_validation': 'Validated against 2 prior incidents from 2026-06-16. Identical root cause and metrics profile confirm systemic configuration failure rather than isolated anomaly.'}
 
 ## Specialist Agent Findings
 ### Log Agent - confidence 0.95
-Backend service experiencing HTTP 500 spikes due to Database Connection Pool Exhaustion.
+The 'data-worker' pod was terminated by Kubernetes due to an OOMKilled event caused by exceeding memory limits, directly correlated with a Java Heap Space OutOfMemoryError.
 
-- Evidence: Log ERROR: 'Timeout waiting for idle object in pool' (vngcloud.postgresql.Driver)
-- Evidence: Log WARN: 'HikariPool-1 - Connection is not available, request timed out after 30000ms'
-- Evidence: Historical Incident INC-20260610-100902 confirms pool exhaustion pattern and configuration limits
+- Evidence: Kubernetes Event: Pod 'data-worker-99-vng' received 'OOMKilled' reason
+- Evidence: Application Log: 'java.lang.OutOfMemoryError: Java heap space' at 17:52:00Z
+- Evidence: Alert: Critical severity indicating pod memory limits breached
+- Evidence: Historical Context: Two prior incidents (INC-20260616-143744, INC-20260616-143803) show identical OOM patterns with 101.2% utilization
 
 ### Metrics Agent - confidence 0.95
-Dependency bottleneck confirmed: Database Connection Pool Exhaustion causing service timeouts while local resources remain healthy.
+Critical local resource pressure incident. The data-worker service experienced an OOMKilled event due to container memory limit exhaustion (101.2% usage). Metrics indicate this is not a dependency bottleneck as CPU and latency remained within normal parameters.
 
-- Evidence: CPU usage low (15%) and Memory usage low (40%) rule out local resource pressure
-- Evidence: Error rate critical (88.5%) indicates widespread request failure
-- Evidence: Latency exactly matches timeout threshold (30000ms)
-- Evidence: Historical incidents (INC-20260610-100902, INC-2026-05B) explicitly link 30s timeouts to DB pool exhaustion
+- Evidence: Memory usage recorded at 101.2%, exceeding container limits
+- Evidence: CPU usage low at 15.0%, ruling out compute saturation
+- Evidence: Latency stable at 45.0ms, indicating no dependency delays
+- Evidence: Alert explicitly states OOMKilled status
+- Evidence: Historical data shows 87%+ similarity to previous OOM incidents with identical root causes
 
-### Research Agent - confidence 0.72
-External research found 2 relevant references for: vngcloud.postgresql.Driver - Connection stubborn: Timeout waiting for idle object in pool
+### Research Agent - confidence 0.76
+Open Web Research found actionable context for: java.lang.OutOfMemoryError: Java heap space
 
-- Evidence: 1. I am getting pool error Timeout waiting for idle object
-URL: https://stackoverflow.com/questions/20401254/i-am-getting-pool-error-timeout-waiting-for-idle-object
-Summary: This exception is stating that the pool manager cannot produce a viable connection to a waiting requester and the maxWait has passed therefore triggering a timeout.
-- Evidence: 2. pgpool and postgresql lots of idle connection - Stack Overflow
-URL: https://stackoverflow.com/questions/53293237/pgpool-and-postgresql-lots-of-idle-connection
-Summary: My application is connecting with pgpool ( I'hv 1 databases and 7 user/app) and I'hv seen from background that in PostgreSQL has lots of IDLE connection that was running query DISCARD ALL. I increased the postgresql max connection from 100 to 1500. because sometimes idle connection goes up to 850 and for that connection is impacting our services.
+- Evidence: Generated open-web query: java.lang.OutOfMemoryError Java heap space root cause analysis solution fix
+- Evidence: *   **Root Cause:** Heap exhaustion typically stems from memory leaks, unbounded data collections, or `-Xmx` configuration undersized for the application's data volume.
+*   **Immediate Mitigation:** Increase JVM max heap (`-Xmx`) and ensure container orchestration limits (Docker/Kubernetes) exceed JVM settings to prevent system-level OOM kills.
+*   **Diagnostic Action:** Capture and analyze heap dumps to isolate specific classes retaining excessive memory and verify leak patterns versus legitimate load.
+*   **Long-term Resolution:** Refactor code to optimize object lifecycle and allocation; implement heap usage monitoring to detect saturation trends early.
+*   **Source:** Remediation steps align with consensus from JVM memory management documentation and engineering troubleshooting guides on containerization.
 
 ## Remediation Actions
-- [ ] {'id': 'REM-01', 'action': 'Increase HikariCP Maximum Pool Size', 'priority': 'CRITICAL', 'details': "Temporarily increase 'maximum-pool-size' configuration parameter to alleviate immediate pressure. Based on historical incident INC-2026-05B, a value of 50 or higher may be required depending on current concurrency.", 'owner': 'Backend Team'}
-- [ ] {'id': 'REM-02', 'action': 'Audit Long-Running Queries', 'priority': 'HIGH', 'details': 'Identify and optimize SQL queries that are blocking connection releases. Review slow query logs for transactions exceeding connection timeout thresholds.', 'owner': 'Database Team'}
-- [ ] {'id': 'REM-03', 'action': 'Implement Connection Monitoring', 'priority': 'MEDIUM', 'details': "Add specific alerts for 'active connections' vs 'maximum pool size' ratio to detect saturation before timeout errors occur (e.g., alert at 80% utilization).", 'owner': 'SRE Team'}
-- [ ] {'id': 'REM-04', 'action': 'Code Review for Leaks', 'priority': 'MEDIUM', 'details': 'Review recent code deployments for unclosed resources or missing try-with-resources blocks that could cause connection leaks.', 'owner': 'Backend Team'}
+- [ ] {'immediate_mitigation': [{'action': 'Increase container memory limit', 'description': "Raise the 'data-worker' pod memory limit by at least 25% to prevent immediate eviction.", 'priority': 'P0'}, {'action': 'Restart affected pods', 'description': 'Trigger rollout to apply new resource limits and restore service availability.', 'priority': 'P0'}], 'configuration_optimization': [{'action': 'Tune JVM Heap Settings', 'description': 'Adjust -Xmx to utilize no more than 75-80% of the container memory limit to accommodate native memory overhead.', 'priority': 'P1'}, {'action': 'Enable Heap Dumps', 'description': 'Configure JVM to generate heap dump on OutOfMemoryError for offline leak analysis.', 'priority': 'P1'}], 'long_term_prevention': [{'action': 'Implement Memory Leak Diagnostics', 'description': 'Analyze heap dumps to identify unbounded collections or session mismanagement; refactor code if necessary.', 'priority': 'P2'}, {'action': 'Enhance Monitoring', 'description': 'Create alerts for memory usage at 80% threshold to catch trends before OOMKilled events occur.', 'priority': 'P2'}]}
+
+## Remediation Execution CLI Log
+```bash
+Successfully executed: kubectl delete pod data-worker-99-vng -n production
+```

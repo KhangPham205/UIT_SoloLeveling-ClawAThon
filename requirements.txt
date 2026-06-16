@@ -3,6 +3,7 @@ chromadb
 ddgs
 duckduckgo-search
 langchain-core
+langchain-community
 langchain-huggingface
 langchain-openai
 langgraph

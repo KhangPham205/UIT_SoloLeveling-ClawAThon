@@ -1,10 +1,10 @@
 [
     {
-        "timestamp": "2026-06-10T09:26:01.445599Z",
+        "timestamp": "2026-06-16T17:52:00.425890Z",
         "namespace": "production",
-        "pod_name": "web-api-pod-xyz",
-        "reason": "Started",
-        "message": "Pod started successfully",
-        "type": "Normal"
+        "pod_name": "data-worker-99-vng",
+        "reason": "OOMKilled",
+        "message": "Container data-worker consumed memory above limit and was killed by the node",
+        "type": "Warning"
     }
 ]

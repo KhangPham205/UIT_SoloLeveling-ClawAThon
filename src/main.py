@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import Dict, Optional
 
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException, Query
 from langchain_core.prompts import ChatPromptTemplate
 
+from src.generator import append_normal_logs_tick, get_live_logs, has_fault_logs, inject_chaos_fault, reset_live_logs
 from src.graph import _build_llm, _strip_qwen_thinking, run_clawops_analysis
 from src.schema import AnalyzeRequest, AnalyzeResponse, ChatRequest, ChatResponse
 
@@ -35,6 +36,9 @@ def analyze_incident(
                 "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
                 "llm_provider": "GreenNode MaaS",
                 "workflow": "FetchData -> MatchMemory -> LogAgent + MetricsAgent -> ResearchAgent -> SupervisorAgent -> GenReports",
+                "remediation_execution_log": final_state.get("remediation_execution_log", ""),
+                "data_source": final_state.get("data_source", "request_or_current_incident_json"),
+                "enrichment_sources": final_state.get("enrichment_sources", []),
             },
         )
     except FileNotFoundError as exc:
@@ -44,6 +48,48 @@ def analyze_incident(
         ) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"ClawOps analysis failed: {exc}") from exc
+
+
+@app.get("/api/v1/live-logs")
+def live_logs(append_healthy: bool = Query(default=True)) -> Dict[str, object]:
+    try:
+        current_logs = get_live_logs()
+        if append_healthy and not has_fault_logs(current_logs):
+            logs = append_normal_logs_tick()
+        else:
+            logs = current_logs
+        return {
+            "generated_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "logs": logs,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Could not read live logs: {exc}") from exc
+
+
+@app.post("/api/v1/chaos")
+def inject_chaos(request: Dict[str, str] = Body(...)) -> Dict[str, object]:
+    scenario = request.get("scenario", "DB_POOL_EXHAUSTED")
+    try:
+        result = inject_chaos_fault(scenario)
+        return {
+            "status": "injected",
+            "scenario": result["scenario"],
+            "live_logs": result["live_logs"],
+            "incident": result["incident"],
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Chaos injection failed: {exc}") from exc
+
+
+@app.post("/api/v1/live-logs/reset")
+def reset_live_log_stream() -> Dict[str, object]:
+    try:
+        return {
+            "status": "reset",
+            "logs": reset_live_logs(),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Live log reset failed: {exc}") from exc
 
 
 @app.post("/api/v1/chat", response_model=ChatResponse)

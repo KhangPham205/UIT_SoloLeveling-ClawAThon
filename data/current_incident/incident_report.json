@@ -1,10 +1,10 @@
 {
-    "incident_id": "INC-20260615-161222",
-    "title": "Incident: backend-service",
+    "incident_id": "INC-20260616-175547",
+    "title": "Incident: data-worker",
     "severity": "CRITICAL",
-    "detected_at": "2026-06-10T09:26:01.445599Z",
+    "detected_at": "2026-06-16T17:52:00.425890Z",
     "impacted_services": [
-        "backend-service"
+        "data-worker"
     ],
-    "short_summary": "HTTP 500 errors spiking due to DB unavailability"
+    "short_summary": "Pod memory limits breached and workload was OOMKilled"
 }
