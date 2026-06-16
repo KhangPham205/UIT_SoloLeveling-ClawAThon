@@ -396,7 +396,12 @@ def _run_analysis(
             status.write(step)
             time.sleep(0.45)
         result = _post_json(f"{backend_url}/api/v1/analyze", payload)
-        status.update(label="RCA and auto-remediation completed", state="complete")
+        remediation_log = result.get("metadata", {}).get("remediation_execution_log", "")
+        if remediation_log:
+            status.write(f"Selected remediation action: `{remediation_log}`")
+        else:
+            status.write("Selected remediation action: No tool execution was required.")
+        status.update(label="RCA completed", state="complete")
 
     st.session_state.analysis_result = result
     st.session_state.chat_context = _build_chat_context(result)
@@ -517,7 +522,6 @@ def _render_live_dashboard(backend_url: str) -> None:
                 "Đang đối chiếu Memory Vector...",
                 "🔍 Đang gọi Gemini-style Research Agent quét thông tin sửa lỗi trên Web toàn cầu...",
                 "Supervisor Agent đang tổng hợp RCA từ Open Web + Memory + Metrics...",
-                "🤖 Đang đề xuất Auto-Remediation Plan...",
             ]
             _run_analysis(
                 backend_url,
@@ -576,7 +580,6 @@ def _render_upload_console(backend_url: str) -> None:
                     "Đang đối chiếu Memory Vector...",
                     "🔍 Đang gọi Gemini-style Research Agent quét thông tin sửa lỗi trên Web toàn cầu...",
                     "Supervisor Agent đang tổng hợp RCA...",
-                    "🤖 Đang đề xuất Auto-Remediation Plan...",
                 ],
             )
             st.success("Incident analysis completed.")
