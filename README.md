@@ -1,10 +1,103 @@
 # ClawOps AI
 
-> **Autonomous SRE Agent for Real-time Incident Detection & Auto-Remediation**
+> **> Multi-Agent AI SRE Copilot for Incident Detection, Root Cause Analysis, and Auto-Remediation**
 
-ClawOps AI is an autonomous SRE copilot designed to reduce **MTTR (Mean Time To Recovery)** by turning noisy production signals into clear root-cause analysis and remediation actions within seconds. Instead of forcing engineers to manually inspect logs, metrics, Kubernetes events, historical post-mortems, and web search results, ClawOps AI orchestrates multiple specialized agents through LangGraph. The system monitors live logs, detects incidents in real time, enriches the event with metrics and Kubernetes snapshots, retrieves similar historical incidents from vector memory, performs open web research, and generates a structured post-mortem with simulated SRE remediation commands.
+## Problem Statement
 
-Built for AI hackathon demos and real-world SRE workflows, ClawOps AI demonstrates how multi-agent reasoning, RAG memory, and tool calling can transform incident response from a manual, stressful process into an automated, evidence-driven workflow.
+Modern cloud-native systems are increasingly built on distributed microservices architectures, making incident response significantly more complex.
+
+When production incidents occur, Site Reliability Engineers (SREs) and DevOps teams must manually inspect logs, correlate metrics, analyze Kubernetes events, search internal documentation, and investigate external resources before identifying the root cause. This process is time-consuming, stressful, and highly dependent on individual expertise, often resulting in prolonged service outages and increased Mean Time To Recovery (MTTR).
+
+## 🎯 Target Users
+
+ClawOps AI is designed for:
+
+- Site Reliability Engineers (SREs)
+- DevOps Engineers
+- Platform Engineering Teams
+- Backend Engineers responsible for production operations
+- Enterprise Operations Teams managing cloud infrastructure
+
+These users frequently handle critical incidents and require rapid, accurate insights to restore system stability.
+
+## 🤖 How ClawOps AI Solves the Problem
+
+ClawOps AI acts as an autonomous SRE Copilot powered by a multi-agent architecture.
+
+When an alert is triggered, the system automatically initiates an incident investigation workflow:
+
+#### 1. Detection
+
+Continuously monitors real-time logs and operational signals to identify anomalies and incidents as soon as they occur.
+
+#### 2. Investigation
+
+Specialized AI agents analyze logs, metrics, traces, and infrastructure events to gather evidence and understand the incident context.
+
+#### 3. Knowledge Retrieval (RAG)
+
+A Vector RAG system searches historical incidents, runbooks, and operational documentation to identify similar failure patterns and previously successful resolutions.
+
+#### 4. Open Web Research
+
+Additional agents perform targeted web searches to discover solutions for emerging issues that are not yet documented internally.
+
+#### 5. Root Cause Analysis (RCA)
+
+All collected evidence is synthesized into a structured Root Cause Analysis report with supporting reasoning and confidence scores.
+
+#### 6. Remediation Simulation
+
+The system evaluates potential remediation actions and simulates automated recovery procedures before presenting recommendations to engineers.
+
+## ⚡ Value Proposition
+
+ClawOps AI dramatically reduces incident investigation time from hours of manual analysis to seconds of autonomous reasoning.
+
+By automating Root Cause Analysis, surfacing relevant historical knowledge, and recommending evidence-based remediation actions, the platform helps organizations:
+
+- Reduce Mean Time To Recovery (MTTR)
+- Minimize human error during critical outages
+- Improve operational efficiency
+- Accelerate knowledge sharing across engineering teams
+- Lower cognitive load and operational stress on SREs and DevOps engineers
+- Improve overall system reliability and service availability
+
+ClawOps AI transforms incident management from a reactive troubleshooting process into a proactive, intelligent, and scalable operational workflow.
+
+
+## 🔄 High-Level Workflow
+
+```text
+Alert Triggered
+       │
+       ▼
+Real-Time Detection
+       │
+       ▼
+Multi-Agent Investigation
+       │
+       ├── Log Analysis
+       ├── Metrics Analysis
+       ├── Kubernetes Events Analysis
+       ├── Historical Incident RAG
+       └── Open Web Search
+       │
+       ▼
+Root Cause Analysis (RCA)
+       │
+       ▼
+Remediation Simulation
+       │
+       ▼
+Actionable Recommendations
+```
+
+### 🏆 Impact
+
+**From Hours → Seconds**
+
+ClawOps AI enables engineering teams to respond faster, learn from previous incidents, and maintain system reliability at scale through autonomous AI-driven incident response.
 
 ---
 
